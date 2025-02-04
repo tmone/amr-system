@@ -1,0 +1,86 @@
+.chart-container {
+    height: 300px;
+    margin: 20px 0;
+}
+
+.loading {
+    display: none;
+}
+
+.results-table {
+    margin-top: 20px;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.results-table th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.results-table th.header-col {
+    width: 20%;
+}
+
+.results-table th.sequence-col {
+    width: 40%;
+}
+
+.results-table th.prediction-col {
+    width: 20%;
+}
+
+.results-table th.confidence-col {
+    width: 20%;
+}
+
+.sequence-cell {
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+}
+
+.sequence-cell:hover {
+    overflow: visible;
+    white-space: normal;
+    word-break: break-all;
+    background: white;
+    position: absolute;
+    z-index: 1;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border: 1px solid #dee2e6;
+    padding: 5px;
+}
+
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 15px;
+}
+
+.status-resistant {
+    background-color: #ffe6e6;
+    color: #cc0000;
+}
+
+.status-sensitive {
+    background-color: #e6ffe6;
+    color: #006600;
+}
+
+/* Training Progress Display */
+#trainingProgress {
+    display: none; /* Hidden by default */
+}
+
+#trainingProgress.show {
+    display: block;
+}
+
+/* Ensure charts are visible */
+.card canvas {
+    width: 100% !important;
+    height: 300px !important;
+}
