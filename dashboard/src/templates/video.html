@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Video Upload and Prediction</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Video for Object Detection</h1>
+        <form action="/upload_video" method="post" enctype="multipart/form-data">
+            <input type="file" name="video" accept="video/*" required>
+            <button type="submit">Upload Video</button>
+        </form>
+        <div id="video-preview" style="display: none;">
+            <h2>Video Preview</h2>
+            <video id="uploaded-video" controls>
+                <source src="" id="video-source" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div id="detection-results"></div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

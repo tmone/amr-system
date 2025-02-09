@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Prediction Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Image Prediction Result</h1>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <p style="color: red;">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <div class="result">
+            <h2>Uploaded Image with Detections</h2>
+            <div class="image-container" style="position: relative; display: inline-block;">
+                <img id="uploadedImage" 
+                     src="{{ url_for('static', filename='uploads/' + image_filename) }}" 
+                     alt="Uploaded Image" 
+                     style="max-width: 100%; display: block;"
+                     onload="setupCanvas()">
+                <canvas id="boxCanvas" style="position: absolute; left: 0; top: 0; pointer-events: none;"></canvas>
+            </div>
+            <div class="predictions">
+                <h3>Predictions:</h3>
+                <ul>
+                    {% for prediction in predictions %}
+                        <li>{{ prediction.label }}: {{ prediction.confidence }}%</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <a href="{{ url_for('index') }}" class="btn">Upload Another Image</a>
+    </div>
+
+    <script>
+        function setupCanvas() {
+            const image = document.getElementById('uploadedImage');
+            const canvas = document.getElementById('boxCanvas');
+            const predictions = {{ predictions|tojson }};
+            
+            // Get actual image dimensions
+            const displayWidth = image.clientWidth;
+            const displayHeight = image.clientHeight;
+            const naturalWidth = image.naturalWidth;
+            const naturalHeight = image.naturalHeight;
+            
+            // Set canvas size to match displayed image size
+            canvas.width = displayWidth;
+            canvas.height = displayHeight;
+            
+            // Calculate scale factors
+            const scaleX = displayWidth / naturalWidth;
+            const scaleY = displayHeight / naturalHeight;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 2;
+            ctx.font = 'bold 16px Arial';
+            
+            predictions.forEach(pred => {
+                // Scale coordinates to match displayed image size
+                const [x1, y1, x2, y2] = pred.bbox.map((coord, index) => 
+                    index % 2 === 0 ? coord * scaleX : coord * scaleY
+                );
+                
+                const label = `${pred.label} ${pred.confidence}%`;
+                
+                // Draw box
+                ctx.strokeStyle = 'red';
+                ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+                
+                // Draw label background
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                const padding = 4;
+                const textMetrics = ctx.measureText(label);
+                ctx.fillRect(x1, y1 - 25, textMetrics.width + padding * 2, 25);
+                
+                // Draw label text
+                ctx.fillStyle = 'white';
+                ctx.fillText(label, x1 + padding, y1 - 7);
+            });
+        }
+
+        // Redraw boxes when window is resized
+        window.addEventListener('resize', setupCanvas);
+    </script>
+</body>
+</html>

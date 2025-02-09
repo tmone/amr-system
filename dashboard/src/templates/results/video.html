@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="position-relative">
+    <div class="video-container">
+        <video id="videoPlayer" class="img-fluid">
+            <source src="{{ url_for('static', filename='uploads/' + video_filename) }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <canvas id="detectionCanvas" class="position-absolute top-0 start-0" style="pointer-events: none;"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block analysis %}
+<div class="card">
+    <div class="card-body">
+        <h6>Video Analysis</h6>
+        <div class="mb-3">Total Frames with Detections: <span id="totalDetections">0</span></div>
+        <div id="currentDetections" class="mb-3">
+            <strong>Current Frame:</strong> <span id="currentFrame">0</span>
+            <div id="frameDetections"></div>
+        </div>
+        <div id="videoResults" class="overflow-auto" style="max-height: 50vh;">
+            <!-- Frame results will be populated here -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const videoResults = {{ video_results|tojson }};
+    const video = document.getElementById('videoPlayer');
+    const canvas = document.getElementById('detectionCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Initialize canvas size when video metadata is loaded
+    video.addEventListener('loadedmetadata', function() {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+    });
+
+    // Update detections on each frame
+    video.addEventListener('timeupdate', function() {
+        const currentFrame = Math.floor(video.currentTime * 30); // Assuming 30fps
+        if (videoResults[currentFrame]) {
+            drawDetections(videoResults[currentFrame].detections);
+            updateCurrentFrameInfo(currentFrame);
+        } else {
+            clearDetections();
+        }
+    });
+
+    function drawDetections(detections) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Scale factor for different video display sizes
+        const scaleX = canvas.width / video.videoWidth;
+        const scaleY = canvas.height / video.videoHeight;
+        
+        ctx.strokeStyle = '#00ff00';
+        ctx.lineWidth = 2;
+        ctx.font = '16px Arial';
+        ctx.fillStyle = '#00ff00';
+
+        detections.forEach(detection => {
+            const [x1, y1, x2, y2] = detection.bbox;
+            // Scale coordinates to match video display size
+            const scaledX1 = x1 * scaleX;
+            const scaledY1 = y1 * scaleY;
+            const scaledX2 = x2 * scaleX;
+            const scaledY2 = y2 * scaleY;
+            
+            ctx.strokeRect(scaledX1, scaledY1, scaledX2-scaledX1, scaledY2-scaledY1);
+            ctx.fillText(
+                `${detection.label} ${detection.confidence}%`,
+                scaledX1, scaledY1 > 20 ? scaledY1 - 5 : scaledY1 + 20
+            );
+        });
+    }
+
+    function clearDetections() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        document.getElementById('frameDetections').innerHTML = 'No detections in current frame';
+    }
+
+    function updateCurrentFrameInfo(frameIndex) {
+        const frameResult = videoResults[frameIndex];
+        document.getElementById('currentFrame').textContent = frameIndex;
+        
+        let detectionsHtml = '<ul class="list-unstyled mb-0">';
+        frameResult.detections.forEach(detection => {
+            detectionsHtml += `<li><strong>${detection.label}</strong>: ${detection.confidence}%</li>`;
+        });
+        detectionsHtml += '</ul>';
+        document.getElementById('frameDetections').innerHTML = detectionsHtml;
+    }
+
+    // Update total detections count
+    const totalDetections = videoResults.reduce((sum, frame) => sum + frame.detections.length, 0);
+    document.getElementById('totalDetections').textContent = totalDetections;
+</script>
+{% endblock %}

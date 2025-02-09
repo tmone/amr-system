@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="position-relative">
+    <img src="{{ url_for('static', filename='uploads/' + image_filename) }}" class="img-fluid" alt="Uploaded image">
+    <canvas id="detectionCanvas" class="position-absolute top-0 start-0" style="pointer-events: none;"></canvas>
+</div>
+{% endblock %}
+
+{% block analysis %}
+<div class="card">
+    <div class="card-body">
+        <h6>Detection Summary</h6>
+        <div id="detectionResults">
+            {% for detection in predictions %}
+            <div class="detection-item">
+                <strong>{{ detection.label }}</strong>: {{ detection.confidence }}%
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add JavaScript to draw bounding boxes on the canvas
+    document.addEventListener('DOMContentLoaded', function() {
+        const img = document.querySelector('.img-fluid');
+        const canvas = document.getElementById('detectionCanvas');
+        const ctx = canvas.getContext('2d');
+
+        img.onload = function() {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            drawDetections({{ predictions|tojson }});
+        };
+
+        function drawDetections(detections) {
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#00ff00';
+
+            detections.forEach(detection => {
+                const [x1, y1, x2, y2] = detection.bbox;
+                ctx.strokeRect(x1, y1, x2-x1, y2-y1);
+                ctx.fillText(
+                    `${detection.label} ${detection.confidence}%`,
+                    x1, y1 > 20 ? y1 - 5 : y1 + 20
+                );
+            });
+        }
+    });
+</script>
+{% endblock %}

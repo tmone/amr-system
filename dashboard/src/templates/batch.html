@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Batch Processing Results</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Batch Processing Results</h1>
+        <div id="results">
+            {% if results %}
+                <h2>Summary of Predictions</h2>
+                <ul>
+                    {% for result in results %}
+                        <li>
+                            <strong>{{ result.filename }}</strong>: 
+                            Detected Objects: {{ result.detected_objects }} 
+                            ({{ result.summary }})
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No results to display.</p>
+            {% endif %}
+        </div>
+        <a href="{{ url_for('index') }}">Back to Dashboard</a>
+    </div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
