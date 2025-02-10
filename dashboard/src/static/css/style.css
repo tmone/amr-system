@@ -73,6 +73,16 @@ h1 {
     align-items: center;
 }
 
+.video-container .btn {
+    z-index: 10;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+}
+
+.video-container .btn:hover {
+    opacity: 1;
+}
+
 .video-container video {
     max-width: 100%;
     max-height: 70vh;
@@ -153,17 +163,78 @@ h1 {
     background-color: #f8f9fa;
 }
 
+.file-item.processing {
+    opacity: 0.7;
+    pointer-events: none;
+    background: #f8f9fa;
+}
+
+.file-item .btn-warning:disabled {
+    opacity: 1;
+    cursor: not-allowed;
+}
+
 .preview-container {
     background-color: #f8f9fa;
     min-height: 400px;
+    height: calc(100vh - 140px) !important;
+    overflow: auto;
 }
 
 .file-list {
+    height: calc(100vh - 320px) !important; /* Adjust height to account for header, buttons and footer */
+    overflow-y: auto;
     border: 1px solid #dee2e6;
     border-radius: 4px;
+    margin-bottom: 1rem;
 }
 
 #resultsSummary {
-    height: calc(100vh - 100px);
+    height: calc(100vh - 140px);
     overflow-y: auto;
+    padding-bottom: 70px; /* Add padding to prevent overlap with footer */
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 56px; /* Fixed height for footer */
+    background-color: #f8f9fa;
+    z-index: 1000;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+    padding: 8px 0;
+}
+
+.footer strong {
+    color: #2c3e50;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.footer .text-muted {
+    font-size: 0.8rem;
+}
+
+/* Adjust main content to prevent footer overlap */
+.container-fluid {
+    min-height: calc(100vh - 56px); /* 56px is footer height */
+    padding-bottom: 70px; /* Increased padding to prevent overlap */
+}
+
+.col-3 {
+    height: calc(100vh - 56px); /* Subtract footer height */
+    overflow-y: auto;
+}
+
+.d-grid.gap-2 {
+    position: sticky;
+    bottom: 70px; /* Keep buttons above footer */
+    background: #f8f9fa;
+    padding-top: 1rem;
+    margin-top: auto;
+}
+
+.file-list .file-item:last-child {
+    margin-bottom: 70px; /* Add space for buttons */
 }

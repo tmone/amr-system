@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="position-relative">
+    <div class="video-container">
+        <video id="processedVideo" class="img-fluid" controls playsinline>
+            <source src="{{ url_for('static', filename='uploads/' + processed_filename) }}" type="video/mp4">
+            <source src="{{ url_for('static', filename='uploads/' + processed_filename) }}" type="video/avi">
+            <source src="{{ url_for('static', filename='uploads/' + processed_filename) }}" type="video/webm">
+            Your browser does not support the video tag.
+            <a href="{{ url_for('static', filename='uploads/' + processed_filename) }}" download>Download video</a>
+        </video>
+    </div>
+</div>
+{% endblock %}
+
+{% block analysis %}
+<div class="card">
+    <div class="card-body">
+        <h6>Video Analysis: {{ display_name }}</h6>
+        <p>Video has been processed with detection boxes and labels.</p>
+        <p class="text-muted small">Showing processed version with detections</p>
+        <hr>
+        <p>Use video controls to play and navigate through the video.</p>
+    </div>
+</div>
+{% endblock %}

@@ -100,11 +100,29 @@ function selectFile(filename) {
                 // Update preview
                 document.querySelector('.preview-container').innerHTML = data.preview_html;
                 
-                // Update results with cache status
+                // Update results
                 const cacheStatus = data.cached ? 
-                    '<div class="text-muted small mb-2">(Loaded from cache)</div>' : 
-                    '<div class="text-muted small mb-2">(Newly predicted)</div>';
+                    '<div class="text-muted small mb-2">(Using processed version)</div>' : 
+                    '<div class="text-muted small mb-2">(Newly processed)</div>';
                 document.getElementById('detectionResults').innerHTML = cacheStatus + data.results_html;
+                
+                // Handle video initialization if needed
+                const video = document.querySelector('.preview-container video');
+                if (video) {
+                    video.addEventListener('loadeddata', () => {
+                        console.log('Video data loaded');
+                        // Play video after loading
+                        video.play().catch(e => {
+                            console.log('Auto-play prevented:', e);
+                            // Browser might prevent autoplay, show play button prominently
+                            const playButton = document.createElement('button');
+                            playButton.className = 'btn btn-primary position-absolute top-50 start-50 translate-middle';
+                            playButton.innerHTML = '<i class="fas fa-play"></i> Play Video';
+                            playButton.onclick = () => video.play();
+                            video.parentElement.appendChild(playButton);
+                        });
+                    });
+                }
                 
                 // Handle image-specific functionality
                 if (data.predictions) {
@@ -168,7 +186,7 @@ function uploadFile() {
     // Show loading state
     const uploadButton = document.querySelector('#uploadModal .btn-primary');
     const originalText = uploadButton.textContent;
-    uploadButton.textContent = 'Uploading...';
+    uploadButton.textContent = 'Uploading and Processing...';
     uploadButton.disabled = true;
 
     // Show progress bar
@@ -199,8 +217,13 @@ function uploadFile() {
             // Show success message
             alert(data.message || 'File uploaded successfully');
             
-            // Refresh the page to show new file
-            location.reload();
+            // If there's a redirect URL (for videos), use it
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else {
+                // Otherwise just reload the page
+                location.reload();
+            }
         } else {
             throw new Error(data.error || 'Upload failed');
         }
@@ -227,4 +250,81 @@ function clearAllFiles() {
                 }
             });
     }
+}
+
+function regenerateVideo(filename, event) {
+    if (!confirm('Are you sure you want to regenerate this video? The current processed version will be removed and generated again.')) {
+        return;
+    }
+
+    // Show loading state
+    const btn = event.currentTarget;
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+
+    // Add processing class to the file item
+    const fileItem = btn.closest('.file-item');
+    fileItem.classList.add('processing');
+
+    // Add global loading indicator
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'position-fixed top-50 start-50 translate-middle bg-white p-3 rounded shadow';
+    loadingDiv.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-primary mb-2"></div>
+            <div>Processing video...</div>
+        </div>
+    `;
+    document.body.appendChild(loadingDiv);
+
+    fetch(`/regenerate_video/${encodeURIComponent(filename)}`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            const toast = new bootstrap.Toast(Object.assign(document.createElement('div'), {
+                className: 'toast position-fixed bottom-0 end-0 m-3',
+                innerHTML: `
+                    <div class="toast-header bg-success text-white">
+                        <strong class="me-auto">Success</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        Video regenerated successfully
+                    </div>
+                `
+            }));
+            document.body.appendChild(toast.element);
+            toast.show();
+            
+            // Redirect to new video
+            window.location.href = data.redirect_url;
+        } else {
+            throw new Error(data.error || 'Failed to regenerate video');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error regenerating video: ' + error.message);
+    })
+    .finally(() => {
+        // Cleanup
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+        fileItem.classList.remove('processing');
+        if (loadingDiv && loadingDiv.parentNode) {
+            loadingDiv.parentNode.removeChild(loadingDiv);
+        }
+    });
 }

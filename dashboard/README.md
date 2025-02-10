@@ -1,6 +1,6 @@
-# yolo-dashboard README.md
+# dashboard README.md
 
-# YOLO Dashboard
+# Dashboard
 
 This project is a web application that allows users to upload images, videos, or compressed folders containing images to perform object detection using a trained YOLO model. The application provides a user-friendly interface for visualizing predictions and results.
 
