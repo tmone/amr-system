@@ -1,8 +1,0 @@
-names:
-- RBC
-- WBC
-- Platelets
-path: C:\Users\dev\.cache\kagglehub\datasets\quangnguynvnnn\bloodcell-yolo-format\versions\1
-test: test/images
-train: train/images
-val: valid/images
